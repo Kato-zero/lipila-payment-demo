@@ -1,0 +1,13 @@
+{
+  "name": "lipila-payment-demo",
+  "version": "1.0.0",
+  "description": "Lipila Mobile Money Payment Integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "keywords": ["lipila", "mobile-money", "payment", "vercel"],
+  "author": "",
+  "license": "MIT"
+}
