@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lipila Pay | Mobile Money</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      background: linear-gradient(145deg, #0b1120 0%, #111827 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* Modern card container */
+    .payment-card {
+      max-width: 520px;
+      width: 100%;
+      background: rgba(18, 25, 45, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(56, 189, 248, 0.1);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .payment-header {
+      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+      padding: 1.8rem 2rem;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      text-align: center;
+    }
+
+    .payment-header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      background: linear-gradient(120deg, #38bdf8, #a855f7);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    .payment-header p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .payment-form {
+      padding: 2rem 2rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #cbd5e6;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .input-group label i {
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .input-group input, .input-group textarea {
+      background: #0f172a;
+      border: 1.5px solid #1e293b;
+      border-radius: 1.2rem;
+      padding: 0.9rem 1.2rem;
+      font-size: 1rem;
+      color: #f1f5f9;
+      transition: all 0.2s;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .input-group input:focus, .input-group textarea:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      background: #0b1120;
+    }
+
+    .input-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .amount-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .currency-symbol {
+      position: absolute;
+      left: 1.2rem;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .amount-wrapper input {
+      padding-left: 2.5rem;
+      width: 100%;
+    }
+
+    .helper-text {
+      font-size: 0.7rem;
+      color: #5b6e8c;
+      margin-top: 0.2rem;
+    }
+
+    /* pay button */
+    .pay-btn {
+      background: linear-gradient(95deg, #2563eb, #7c3aed);
+      border: none;
+      border-radius: 3rem;
+      padding: 1rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 0.5rem;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+    }
+
+    .pay-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+      box-shadow: 0 12px 22px rgba(37, 99, 235, 0.4);
+    }
+
+    .pay-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* spinner */
+    .spinner {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* message boxes */
+    .message-area {
+      margin: 0 2rem 1.8rem 2rem;
+      border-radius: 1.2rem;
+      padding: 0.9rem 1.2rem;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .success-message {
+      background: rgba(16, 185, 129, 0.15);
+      border-left: 4px solid #10b981;
+      color: #a7f3d0;
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 4px solid #ef4444;
+      color: #fecaca;
+    }
+
+    .info-message {
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 4px solid #38bdf8;
+      color: #bae6fd;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 0 1rem 1.5rem 1rem;
+      font-size: 0.7rem;
+      color: #4b556b;
+    }
+
+    @media (max-width: 520px) {
+      .payment-form {
+        padding: 1.5rem;
+      }
+      .payment-header h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-card">
+    <div class="payment-header">
+      <h1>💸 Lipila Pay</h1>
+      <p>Mobile Money · Instant Collections</p>
+    </div>
+
+    <div class="payment-form">
+      <div class="input-group">
+        <label>📛 Full Name</label>
+        <input type="text" id="fullName" placeholder="Mwape Banda" autocomplete="name">
+      </div>
+
+      <div class="input-group">
+        <label>📱 Phone Number (Zambia)</label>
+        <input type="tel" id="phoneNumber" placeholder="26097XXXXXXX" autocomplete="tel">
+        <div class="helper-text">Format: 260 followed by 9 digits (e.g., 260977123456)</div>
+      </div>
+
+      <div class="input-group">
+        <label>💰 Amount (ZMW)</label>
+        <div class="amount-wrapper">
+          <span class="currency-symbol">K</span>
+          <input type="number" id="amount" placeholder="0.00" step="any" value="25.00">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>📝 Narration / Reason</label>
+        <textarea id="narration" placeholder="Payment for services, goods, or donation..."></textarea>
+      </div>
+
+      <button class="pay-btn" id="payButton">
+        <span id="btnText">Pay Now</span>
+        <span id="btnSpinner" class="spinner hidden"></span>
+      </button>
+    </div>
+
+    <div id="messageContainer" class="message-area hidden"></div>
+    <footer>🔒 Secured by Lipila API | Test environment ready</footer>
+  </div>
+
+  <script>
+    (function() {
+      // DOM elements
+      const fullNameInput = document.getElementById('fullName');
+      const phoneInput = document.getElementById('phoneNumber');
+      const amountInput = document.getElementById('amount');
+      const narrationInput = document.getElementById('narration');
+      const payButton = document.getElementById('payButton');
+      const btnTextSpan = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const messageContainer = document.getElementById('messageContainer');
+
+      // Helper: show toast / message
+      function showMessage(type, text) {
+        messageContainer.classList.remove('hidden', 'success-message', 'error-message', 'info-message');
+        let cssClass = '';
+        if (type === 'success') cssClass = 'success-message';
+        else if (type === 'error') cssClass = 'error-message';
+        else cssClass = 'info-message';
+        
+        messageContainer.classList.add(cssClass);
+        messageContainer.innerText = text;
+        // auto scroll into view
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // auto hide after 6 sec for non-error? but keep error visible longer
+        if (type !== 'error') {
+          setTimeout(() => {
+            if (messageContainer.innerText === text) {
+              messageContainer.classList.add('hidden');
+            }
+          }, 6000);
+        }
+      }
+
+      function setLoading(isLoading) {
+        if (isLoading) {
+          payButton.disabled = true;
+          btnTextSpan.innerText = 'Processing...';
+          btnSpinner.classList.remove('hidden');
+        } else {
+          payButton.disabled = false;
+          btnTextSpan.innerText = 'Pay Now';
+          btnSpinner.classList.add('hidden');
+        }
+      }
+
+      // validate phone: must start with 260 and have exactly 12 digits (260 + 9 digits) OR allow flexible extra?
+      // format example: 260977123456 (12 characters)
+      function validateZambianPhone(phone) {
+        const cleaned = phone.trim().replace(/\s+/g, '');
+        // Accept 260 + 9 digits exactly = 12 chars total
+        const regex = /^260[0-9]{9}$/;
+        return regex.test(cleaned);
+      }
+
+      function formatPhoneNumber(raw) {
+        let cleaned = raw.trim().replace(/\s+/g, '');
+        // if starts with 0? e.g., 0977123456 -> convert to 260977123456
+        if (cleaned.startsWith('0') && cleaned.length === 10) {
+          cleaned = '260' + cleaned.substring(1);
+        }
+        // if starts with +260? remove '+'
+        if (cleaned.startsWith('+260')) {
+          cleaned = cleaned.substring(1);
+        }
+        // if length is 9 digits and no prefix: assume local? better ask user but we ensure
+        if (/^[0-9]{9}$/.test(cleaned)) {
+          cleaned = '260' + cleaned;
+        }
+        return cleaned;
+      }
+
+      // Generate RFC4122 v4 UUID (simple but robust)
+      function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      async function handlePayment() {
+        // clear previous message
+        messageContainer.classList.add('hidden');
+        
+        // get values
+        let fullName = fullNameInput.value.trim();
+        let rawPhone = phoneInput.value.trim();
+        let amountRaw = amountInput.value.trim();
+        let narration = narrationInput.value.trim() || "Mobile payment via Lipila";
+
+        // validations
+        if (!fullName) {
+          showMessage('error', '❌ Please enter your full name.');
+          fullNameInput.focus();
+          return;
+        }
+        if (!rawPhone) {
+          showMessage('error', '📱 Phone number is required.');
+          phoneInput.focus();
+          return;
+        }
+        // format phone
+        const formattedPhone = formatPhoneNumber(rawPhone);
+        if (!validateZambianPhone(formattedPhone)) {
+          showMessage('error', '⚠️ Invalid Zambian mobile number. Use format 26097xxxxxx (12 digits, starts with 260).');
+          phoneInput.focus();
+          return;
+        }
+        const amount = parseFloat(amountRaw);
+        if (isNaN(amount) || amount <= 0) {
+          showMessage('error', '💰 Amount must be a positive number (ZMW).');
+          amountInput.focus();
+          return;
+        }
+        if (amount < 0.5) {
+          showMessage('error', 'Minimum amount is 0.50 ZMW.');
+          amountInput.focus();
+          return;
+        }
+        
+        // generate unique referenceId
+        const referenceId = generateUUID();
+        
+        // build payload for Lipila API (as per spec)
+        // callbackUrl / backUrl / redirectUrl: We'll use dummy or actual? Provide a generic placeholder
+        // According to Lipila docs, they might require valid URLs. For production, merchant provides real.
+        // For demo, we use a placeholder (Vercel deployment base url would be ideal but we set generic)
+        // We can derive base from window.location.origin for frontend callback, but backend function will forward.
+        // Actually the serverless function will forward the payload; we set placeholder but can be dynamic.
+        // To be safe, we use dummy but merchant should replace in real. But since it's required, we provide functional URL.
+        const baseUrl = window.location.origin; // e.g., https://myapp.vercel.app
+        const callbackUrl = `${baseUrl}/api/payment-callback`;  // not implemented but required by Lipila; can be placeholder
+        const backUrl = `${baseUrl}/`;
+        const redirectUrl = `${baseUrl}/payment-status.html`; // fallback; not critical
+        
+        const requestBody = {
+          callbackUrl: callbackUrl,
+          referenceId: referenceId,
+          amount: amount,
+          narration: narration,
+          accountNumber: formattedPhone,   // phone number as account number (mobile money)
+          currency: "ZMW",
+          backUrl: backUrl,
+          redirectUrl: redirectUrl
+        };
+        
+        // Debug: console log request (clean)
+        console.log("[Lipila Payment] request:", { ...requestBody, fullName });
+        
+        setLoading(true);
+        
+        try {
+          const response = await fetch('/api/create-payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            // error from our API or Lipila relay
+            const errorMsg = data.error || data.message || `Server responded with ${response.status}`;
+            throw new Error(errorMsg);
+          }
+          
+          // success path: show response data
+          console.log("[Lipila Payment] Success response:", data);
+          // display beautiful success message
+          let successText = `✅ Payment initiated successfully! Reference: ${referenceId.slice(0, 8)}... `;
+          if (data.message) successText += data.message;
+          if (data.data && data.data.reference) successText += ` Transaction ID: ${data.data.reference}`;
+          showMessage('success', successText);
+          
+          // optional: reset form? keep data for user convenience but clear narration maybe
+          // we do not auto clear sensitive, but success is shown.
+          narrationInput.value = '';
+          // small flash: add green effect
+          payButton.style.background = "linear-gradient(95deg, #059669, #10b981)";
+          setTimeout(() => {
+            payButton.style.background = "linear-gradient(95deg, #2563eb, #7c3aed)";
+          }, 1000);
+          
+        } catch (err) {
+          console.error("[Payment Error]", err);
+          let friendlyMsg = err.message || "Something went wrong while processing payment.";
+          if (friendlyMsg.includes("Failed to fetch")) friendlyMsg = "Network error. Please check your connection and try again.";
+          showMessage('error', `❌ ${friendlyMsg}`);
+        } finally {
+          setLoading(false);
+        }
+      }
+      
+      // attach event
+      payButton.addEventListener('click', handlePayment);
+      
+      // additional: allow enter key on form fields? not mandatory but nice
+      const inputs = [fullNameInput, phoneInput, amountInput, narrationInput];
+      inputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handlePayment();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
